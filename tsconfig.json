@@ -8,6 +8,18 @@
       ],
       "@/assets/*": [
         "./assets/*"
+      ],
+      "database/*": [
+        "./database/*"
+      ],
+      "utils/*": [
+        "./utils/*"
+      ],
+      "@/database/*": [
+        "./database/*"
+      ],
+      "@/utils/*": [
+        "./utils/*"
       ]
     }
   },

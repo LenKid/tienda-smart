@@ -1,0 +1,73 @@
+import { ScrollView, StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useInventory } from '@/hooks/use-inventory';
+import { listarProductosUrgentes } from '@/utils/prediccion';
+
+const currency = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
+
+export default function AlertsScreen() {
+  const { products, recentSales } = useInventory();
+  const urgent = listarProductosUrgentes(products, recentSales);
+
+  return (
+    <ThemedView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ThemedView style={styles.header}>
+          <ThemedText type="title">Alertas y predicción</ThemedText>
+          <ThemedText themeColor="textSecondary">Demanda calculada con los últimos 7 días</ThemedText>
+        </ThemedView>
+        {urgent.length === 0 ? (
+          <ThemedView type="backgroundElement" style={styles.empty}>
+            <ThemedText type="subtitle">Sin reabastecimientos urgentes</ThemedText>
+            <ThemedText themeColor="textSecondary" style={styles.centerText}>
+              Todos los productos tienen stock suficiente.
+            </ThemedText>
+          </ThemedView>
+        ) : (
+          <ScrollView contentContainerStyle={styles.list}>
+            {urgent.map((product) => (
+              <ThemedView key={product.id} style={styles.alertCard}>
+                <ThemedView style={styles.alertHeader}>
+                  <ThemedText type="subtitle">{product.nombre}</ThemedText>
+                  <ThemedText type="smallBold" style={styles.urgentBadge}>URGENTE</ThemedText>
+                </ThemedView>
+                <ThemedText>Quedan {product.stock_actual} unidades.</ThemedText>
+                <ThemedText themeColor="textSecondary">
+                  Venta diaria: {product.promedioDiario.toFixed(1)} ·
+                  {' '}Agotamiento: {Number.isFinite(product.diasRestantes) ? `${Math.ceil(product.diasRestantes)} días` : 'sin movimiento'}
+                </ThemedText>
+                <ThemedText type="smallBold" style={styles.purchase}>
+                  Pedir {product.cantidadSugerida} unidades para abastecer la próxima semana
+                </ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">
+                  Valor estimado: {currency.format(product.cantidadSugerida * product.precio_venta)}
+                </ThemedText>
+              </ThemedView>
+            ))}
+          </ScrollView>
+        )}
+      </SafeAreaView>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, flexDirection: 'row', justifyContent: 'center' },
+  safeArea: { flex: 1, maxWidth: MaxContentWidth, paddingHorizontal: Spacing.four, paddingBottom: BottomTabInset },
+  header: { paddingVertical: Spacing.four, gap: Spacing.one },
+  list: { gap: Spacing.three, paddingBottom: Spacing.four },
+  alertCard: { borderLeftWidth: 6, borderLeftColor: '#F59E0B', borderRadius: Spacing.three, backgroundColor: '#FEF3C7', padding: Spacing.three, gap: Spacing.one },
+  alertHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  urgentBadge: { color: '#FFFFFF', backgroundColor: '#DC2626', borderRadius: 999, overflow: 'hidden', paddingHorizontal: Spacing.two, paddingVertical: Spacing.half },
+  purchase: { color: '#92400E', marginTop: Spacing.one },
+  empty: { borderRadius: Spacing.three, padding: Spacing.four, alignItems: 'center', gap: Spacing.two },
+  centerText: { textAlign: 'center' },
+});

@@ -1,0 +1,195 @@
+import { useState } from 'react';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInventory } from '@/hooks/use-inventory';
+
+const currency = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
+
+export default function InventoryScreen() {
+  const { products, addProduct, addStock } = useInventory();
+  const scheme = useColorScheme();
+  const theme = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const [modalVisible, setModalVisible] = useState(false);
+  const [codigo, setCodigo] = useState('');
+  const [nombre, setNombre] = useState('');
+  const [precio, setPrecio] = useState('');
+  const [stock, setStock] = useState('');
+  const [minimo, setMinimo] = useState('');
+  const [restockId, setRestockId] = useState<number | null>(null);
+  const [restockQuantity, setRestockQuantity] = useState('');
+
+  const positiveInteger = (value: string) => /^\d+$/.test(value) && Number(value) > 0;
+
+  const saveProduct = () => {
+    if (!codigo.trim() || !nombre.trim()) {
+      Alert.alert('Datos incompletos', 'Escribe el código y el nombre del producto.');
+      return;
+    }
+    if (!positiveInteger(precio) || !positiveInteger(stock) || !positiveInteger(minimo)) {
+      Alert.alert('Datos inválidos', 'Precio, stock y mínimo deben ser enteros positivos.');
+      return;
+    }
+    try {
+      addProduct({
+        codigo: codigo.trim().toUpperCase(),
+        nombre: nombre.trim(),
+        precioVenta: Number(precio),
+        stockActual: Number(stock),
+        stockMinimo: Number(minimo),
+      });
+      setModalVisible(false);
+      setCodigo('');
+      setNombre('');
+      setPrecio('');
+      setStock('');
+      setMinimo('');
+      Alert.alert('Producto creado', 'El inventario fue actualizado.');
+    } catch (caught) {
+      Alert.alert('No se pudo crear', caught instanceof Error ? caught.message : 'Error inesperado.');
+    }
+  };
+
+  const restock = () => {
+    if (restockId === null || !positiveInteger(restockQuantity)) {
+      Alert.alert('Cantidad inválida', 'Ingresa un entero positivo.');
+      return;
+    }
+    try {
+      addStock(restockId, Number(restockQuantity));
+      setRestockId(null);
+      setRestockQuantity('');
+      Alert.alert('Stock actualizado', 'La llegada fue registrada.');
+    } catch (caught) {
+      Alert.alert('No se pudo actualizar', caught instanceof Error ? caught.message : 'Error inesperado.');
+    }
+  };
+
+  return (
+    <ThemedView style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ViewHeader title="Inventario" />
+        <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
+          <ThemedText type="subtitle" style={styles.addText}>+ Nuevo producto</ThemedText>
+        </Pressable>
+
+        <ScrollView contentContainerStyle={styles.list}>
+          {products.map((product) => {
+            const low = product.stock_actual <= product.stock_minimo;
+            return (
+              <ThemedView key={product.id} type="backgroundElement" style={styles.productRow}>
+                <ThemedView style={styles.productInfo}>
+                  <ThemedText type="smallBold">{product.nombre}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">{product.codigo}</ThemedText>
+                  <ThemedText type="small">{currency.format(product.precio_venta)}</ThemedText>
+                </ThemedView>
+                <ThemedView style={styles.stockInfo}>
+                  {low && <ThemedText type="smallBold" style={styles.lowBadge}>STOCK BAJO</ThemedText>}
+                  <ThemedText type="small">Actual: {product.stock_actual}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">Mínimo: {product.stock_minimo}</ThemedText>
+                  <Pressable
+                    style={styles.restockButton}
+                    onPress={() => setRestockId(product.id)}>
+                    <ThemedText type="smallBold" style={styles.restockText}>Sumar stock</ThemedText>
+                  </Pressable>
+                </ThemedView>
+              </ThemedView>
+            );
+          })}
+        </ScrollView>
+      </SafeAreaView>
+
+      <Modal visible={modalVisible} animationType="slide" transparent>
+        <ThemedView style={styles.modalOverlay}>
+          <ThemedView style={[styles.modal, { backgroundColor: theme.background }]}>
+            <ThemedText type="subtitle">Nuevo producto</ThemedText>
+            {[
+              ['Código', codigo, setCodigo],
+              ['Nombre', nombre, setNombre],
+              ['Precio', precio, setPrecio],
+              ['Stock inicial', stock, setStock],
+              ['Stock mínimo', minimo, setMinimo],
+            ].map(([label, value, setter]) => (
+              <TextInput
+                key={String(label)}
+                placeholder={String(label)}
+                value={String(value)}
+                onChangeText={setter as (text: string) => void}
+                keyboardType={String(label).includes('Precio') || String(label).includes('Stock') ? 'number-pad' : 'default'}
+                style={[styles.input, { color: theme.text }]}
+              />
+            ))}
+            <Pressable style={styles.saveButton} onPress={saveProduct}>
+              <ThemedText type="subtitle" style={styles.addText}>Guardar producto</ThemedText>
+            </Pressable>
+            <Pressable style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+              <ThemedText>Cancelar</ThemedText>
+            </Pressable>
+          </ThemedView>
+        </ThemedView>
+      </Modal>
+
+      <Modal visible={restockId !== null} animationType="fade" transparent>
+        <ThemedView style={styles.modalOverlay}>
+          <ThemedView style={[styles.modal, { backgroundColor: theme.background }]}>
+            <ThemedText type="subtitle">Registrar llegada</ThemedText>
+            <TextInput
+              placeholder="Cantidad recibida"
+              value={restockQuantity}
+              onChangeText={setRestockQuantity}
+              keyboardType="number-pad"
+              style={[styles.input, { color: theme.text }]}
+            />
+            <Pressable style={styles.saveButton} onPress={restock}>
+              <ThemedText type="subtitle" style={styles.addText}>Sumar al stock</ThemedText>
+            </Pressable>
+            <Pressable
+              style={styles.cancelButton}
+              onPress={() => {
+                setRestockId(null);
+                setRestockQuantity('');
+              }}>
+              <ThemedText>Cancelar</ThemedText>
+            </Pressable>
+          </ThemedView>
+        </ThemedView>
+      </Modal>
+    </ThemedView>
+  );
+}
+
+function ViewHeader({ title }: { title: string }) {
+  return (
+    <ThemedView style={styles.header}>
+      <ThemedText type="title">{title}</ThemedText>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, flexDirection: 'row', justifyContent: 'center' },
+  safeArea: { flex: 1, maxWidth: MaxContentWidth, paddingHorizontal: Spacing.four, paddingBottom: BottomTabInset },
+  header: { paddingVertical: Spacing.four },
+  addButton: { minHeight: 56, borderRadius: Spacing.three, backgroundColor: '#208AEF', alignItems: 'center', justifyContent: 'center' },
+  addText: { color: '#FFFFFF' },
+  list: { gap: Spacing.two, paddingVertical: Spacing.three },
+  productRow: { flexDirection: 'row', borderRadius: Spacing.three, padding: Spacing.three, gap: Spacing.two },
+  productInfo: { flex: 1, gap: Spacing.half },
+  stockInfo: { width: 132, alignItems: 'flex-end', gap: Spacing.half },
+  lowBadge: { color: '#FFFFFF', backgroundColor: '#DC2626', borderRadius: 999, overflow: 'hidden', paddingHorizontal: Spacing.two, paddingVertical: Spacing.half },
+  restockButton: { marginTop: Spacing.one, backgroundColor: '#DCFCE7', borderRadius: Spacing.two, paddingHorizontal: Spacing.two, paddingVertical: Spacing.one },
+  restockText: { color: '#166534' },
+  modalOverlay: { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)', padding: Spacing.four },
+  modal: { borderRadius: Spacing.four, padding: Spacing.four, gap: Spacing.two },
+  input: { minHeight: 52, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: Spacing.two, paddingHorizontal: Spacing.three },
+  saveButton: { minHeight: 56, borderRadius: Spacing.two, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
+  cancelButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
+});

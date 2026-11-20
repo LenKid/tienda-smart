@@ -1,98 +1,224 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInventory } from '@/hooks/use-inventory';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+const currency = new Intl.NumberFormat('es-CO', {
+  style: 'currency',
+  currency: 'COP',
+  maximumFractionDigits: 0,
+});
 
-export default function HomeScreen() {
+export default function SalesScreen() {
+  const { products, registerSale } = useInventory();
+  const scheme = useColorScheme();
+  const theme = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const [productId, setProductId] = useState<number | null>(null);
+  const [quantity, setQuantity] = useState('1');
+  const [lines, setLines] = useState<Array<{ idProducto: number; cantidad: number }>>([]);
+
+  const selected = products.find((product) => product.id === productId) ?? null;
+  const parsedQuantity = /^\d+$/.test(quantity) ? Number(quantity) : 0;
+  const total = lines.reduce((sum, line) => {
+    const product = products.find((item) => item.id === line.idProducto);
+    return sum + (product ? product.precio_venta * line.cantidad : 0);
+  }, 0);
+
+  const changeQuantity = (amount: number) => {
+    const next = String(Math.max(1, (parsedQuantity || 0) + amount));
+    setQuantity(next);
+    if (productId !== null) {
+      setLines((current) =>
+        current.map((line) =>
+          line.idProducto === productId
+            ? { ...line, cantidad: Number(next) }
+            : line,
+        ),
+      );
+    }
+  };
+
+  const selectProduct = (id: number) => {
+    const existing = lines.find((line) => line.idProducto === id);
+    if (!existing && lines.length >= 3) {
+      Alert.alert('Máximo tres productos', 'Una venta puede contener hasta tres productos.');
+      return;
+    }
+    if (existing) {
+      setProductId(id);
+      setQuantity(String(existing.cantidad));
+      return;
+    }
+    setLines((current) => [...current, { idProducto: id, cantidad: 1 }]);
+    setProductId(id);
+    setQuantity('1');
+  };
+
+  const confirmSale = () => {
+    if (!selected && lines.length === 0) {
+      Alert.alert('Selecciona un producto', 'Elige el producto que se está vendiendo.');
+      return;
+    }
+    for (const line of lines) {
+      if (!Number.isInteger(line.cantidad) || line.cantidad <= 0) {
+        Alert.alert('Cantidad inválida', 'Todas las cantidades deben ser enteros positivos.');
+        return;
+      }
+      const product = products.find((item) => item.id === line.idProducto);
+      if (!product) {
+        Alert.alert('Producto no disponible', 'Selecciona nuevamente los productos.');
+        return;
+      }
+      if (line.cantidad > product.stock_actual) {
+        Alert.alert(
+          'Stock insuficiente',
+          `Solo quedan ${product.stock_actual} unidades de ${product.nombre}.`,
+        );
+        return;
+      }
+    }
+
+    try {
+      registerSale(lines);
+      Alert.alert('Venta registrada', `Se confirmaron ${lines.length} productos.`);
+      setQuantity('1');
+      setProductId(null);
+      setLines([]);
+    } catch (caught) {
+      Alert.alert('No se pudo registrar', caught instanceof Error ? caught.message : 'Error inesperado.');
+    }
+  };
+
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
+        <ScrollView contentContainerStyle={styles.content}>
+          <ThemedText type="title">Registrar venta</ThemedText>
+          <ThemedText themeColor="textSecondary">
+            Selecciona un producto y confirma en pocos toques.
           </ThemedText>
-        </ThemedView>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>Producto</ThemedText>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.products}>
+            {products.map((product) => (
+              <Pressable
+                key={product.id}
+                onPress={() => selectProduct(product.id)}
+                style={[
+                  styles.productCard,
+                  {
+                    backgroundColor:
+                      lines.some((line) => line.idProducto === product.id)
+                        ? '#DCFCE7'
+                        : theme.backgroundElement,
+                  },
+                ]}>
+                <ThemedText type="smallBold">{product.nombre}</ThemedText>
+                <ThemedText type="small">{currency.format(product.precio_venta)}</ThemedText>
+                <ThemedText type="small" themeColor="textSecondary">Stock: {product.stock_actual}</ThemedText>
+              </Pressable>
+            ))}
+          </ScrollView>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+          {selected && (
+            <ThemedView type="backgroundElement" style={styles.quantityCard}>
+              <ThemedText type="subtitle">{selected.nombre}</ThemedText>
+              <ThemedText themeColor="textSecondary">Disponible: {selected.stock_actual}</ThemedText>
+              <ThemedView style={styles.stepper}>
+                <Pressable style={styles.stepButton} onPress={() => changeQuantity(-1)}>
+                  <ThemedText type="title">−</ThemedText>
+                </Pressable>
+                <TextInput
+                  value={quantity}
+                  onChangeText={(value) => {
+                    setQuantity(value);
+                    if (productId !== null) {
+                      setLines((current) =>
+                        current.map((line) =>
+                          line.idProducto === productId
+                            ? { ...line, cantidad: /^\d+$/.test(value) ? Number(value) : 0 }
+                            : line,
+                        ),
+                      );
+                    }
+                  }}
+                  keyboardType="number-pad"
+                  inputMode="numeric"
+                  style={[styles.quantityInput, { color: theme.text }]}
+                />
+                <Pressable style={styles.stepButton} onPress={() => changeQuantity(1)}>
+                  <ThemedText type="title">+</ThemedText>
+                </Pressable>
+              </ThemedView>
+            </ThemedView>
+          )}
 
-        {Platform.OS === 'web' && <WebBadge />}
+          <ThemedView style={styles.totalCard}>
+            <ThemedText type="small">Total de venta</ThemedText>
+            <ThemedText type="title">{currency.format(total)}</ThemedText>
+          </ThemedView>
+
+          <Pressable style={styles.confirmButton} onPress={confirmSale}>
+            <ThemedText type="subtitle" style={styles.confirmText}>Confirmar venta</ThemedText>
+          </Pressable>
+        </ScrollView>
       </SafeAreaView>
     </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
+  container: { flex: 1, flexDirection: 'row', justifyContent: 'center' },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
     maxWidth: MaxContentWidth,
+    paddingHorizontal: Spacing.four,
+    paddingBottom: BottomTabInset + Spacing.three,
   },
-  heroSection: {
+  content: { gap: Spacing.three, paddingVertical: Spacing.four },
+  sectionTitle: { marginTop: Spacing.two },
+  products: { gap: Spacing.two },
+  productCard: {
+    width: 176,
+    minHeight: 112,
+    justifyContent: 'center',
+    gap: Spacing.half,
+    borderRadius: Spacing.three,
+    padding: Spacing.three,
+  },
+  quantityCard: { borderRadius: Spacing.three, padding: Spacing.three, gap: Spacing.two },
+  stepper: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: Spacing.two },
+  stepButton: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
   },
-  title: {
+  quantityInput: {
+    minWidth: 96,
     textAlign: 'center',
+    fontSize: 28,
+    fontWeight: '700',
   },
-  code: {
-    textTransform: 'uppercase',
+  totalCard: {
+    borderRadius: Spacing.three,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    padding: Spacing.three,
   },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+  confirmButton: {
+    minHeight: 64,
+    borderRadius: Spacing.three,
+    backgroundColor: '#16A34A',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  confirmText: { color: '#FFFFFF' },
 });
