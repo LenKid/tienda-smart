@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInventory } from '@/hooks/use-inventory';
 
@@ -97,7 +97,7 @@ export default function SalesScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.content}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
           <ThemedText type="title">Registrar venta</ThemedText>
           <ThemedText themeColor="textSecondary">
             Selecciona un producto y confirma en pocos toques.
@@ -173,13 +173,17 @@ export default function SalesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, flexDirection: 'row', justifyContent: 'center' },
+  container: { flex: 1, width: '100%' },
   safeArea: {
     flex: 1,
-    maxWidth: MaxContentWidth,
+    width: '100%',
     paddingHorizontal: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.three,
+    paddingBottom: Platform.select({
+      web: 96,
+      default: BottomTabInset + Spacing.three,
+    }),
   },
+  scroll: { flex: 1, width: '100%' },
   content: { gap: Spacing.three, paddingVertical: Spacing.four },
   sectionTitle: { marginTop: Spacing.two },
   products: { gap: Spacing.two },

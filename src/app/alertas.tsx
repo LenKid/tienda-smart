@@ -1,9 +1,9 @@
-import { ScrollView, StyleSheet } from 'react-native';
+import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useInventory } from '@/hooks/use-inventory';
 import { listarProductosUrgentes } from '@/utils/prediccion';
 
@@ -32,7 +32,7 @@ export default function AlertsScreen() {
             </ThemedText>
           </ThemedView>
         ) : (
-          <ScrollView contentContainerStyle={styles.list}>
+          <ScrollView style={styles.scroll} contentContainerStyle={styles.list}>
             {urgent.map((product) => (
               <ThemedView key={product.id} style={styles.alertCard}>
                 <ThemedView style={styles.alertHeader}>
@@ -60,8 +60,14 @@ export default function AlertsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, flexDirection: 'row', justifyContent: 'center' },
-  safeArea: { flex: 1, maxWidth: MaxContentWidth, paddingHorizontal: Spacing.four, paddingBottom: BottomTabInset },
+  container: { flex: 1, width: '100%' },
+  safeArea: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: Spacing.four,
+    paddingBottom: Platform.select({ web: 96, default: BottomTabInset }),
+  },
+  scroll: { flex: 1, width: '100%' },
   header: { paddingVertical: Spacing.four, gap: Spacing.one },
   list: { gap: Spacing.three, paddingBottom: Spacing.four },
   alertCard: { borderLeftWidth: 6, borderLeftColor: '#F59E0B', borderRadius: Spacing.three, backgroundColor: '#FEF3C7', padding: Spacing.three, gap: Spacing.one },

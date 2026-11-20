@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { BottomTabInset, Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInventory } from '@/hooks/use-inventory';
 
@@ -81,7 +81,7 @@ export default function InventoryScreen() {
           <ThemedText type="subtitle" style={styles.addText}>+ Nuevo producto</ThemedText>
         </Pressable>
 
-        <ScrollView contentContainerStyle={styles.list}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.list}>
           {products.map((product) => {
             const low = product.stock_actual <= product.stock_minimo;
             return (
@@ -175,8 +175,14 @@ function ViewHeader({ title }: { title: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, flexDirection: 'row', justifyContent: 'center' },
-  safeArea: { flex: 1, maxWidth: MaxContentWidth, paddingHorizontal: Spacing.four, paddingBottom: BottomTabInset },
+  container: { flex: 1, width: '100%' },
+  safeArea: {
+    flex: 1,
+    width: '100%',
+    paddingHorizontal: Spacing.four,
+    paddingBottom: Platform.select({ web: 96, default: BottomTabInset }),
+  },
+  scroll: { flex: 1, width: '100%' },
   header: { paddingVertical: Spacing.four },
   addButton: { minHeight: 56, borderRadius: Spacing.three, backgroundColor: '#208AEF', alignItems: 'center', justifyContent: 'center' },
   addText: { color: '#FFFFFF' },
