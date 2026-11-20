@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Tienda Smart logo</title>
+  <desc id="desc">Interlocking blue and white TS monogram on a dark rounded square with a green accent.</desc>
+
+  <rect width="512" height="512" rx="96" fill="#111827"/>
+
+  <path
+    d="M96 132H416V196H322V392H256V196H96V132Z"
+    fill="#208AEF"/>
+
+  <path
+    d="M198 286C236 316 272 332 312 332C350 332 372 318 372 294C372 268 350 258 304 246C246 232 212 210 212 170C212 120 252 88 316 88C354 88 386 98 412 118L382 166C362 152 340 145 318 145C292 145 272 154 272 171C272 188 292 194 336 207C394 225 428 250 428 310C428 376 376 420 305 420C253 420 204 402 164 368L198 286Z"
+    fill="#FFFFFF"/>
+
+  <circle cx="410" cy="118" r="20" fill="#4ADE80"/>
+</svg>
