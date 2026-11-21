@@ -8,6 +8,11 @@
   --font-serif: Georgia, 'Times New Roman', serif;
 }
 
+::selection {
+  background: #DDEBFF;
+  color: #0B132B;
+}
+
 html,
 body,
 #root {

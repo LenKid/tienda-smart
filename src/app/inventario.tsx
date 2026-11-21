@@ -79,7 +79,9 @@ export default function InventoryScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ViewHeader title="Inventario" />
-        <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
+        <Pressable
+          style={[styles.addButton, { backgroundColor: theme.primary }]}
+          onPress={() => setModalVisible(true)}>
           <SymbolView
             name={{ ios: 'plus', android: 'add', web: 'add' }}
             size={22}
@@ -144,7 +146,9 @@ export default function InventoryScreen() {
                 style={[styles.input, { color: theme.text }]}
               />
             ))}
-            <Pressable style={styles.saveButton} onPress={saveProduct}>
+            <Pressable
+              style={[styles.saveButton, { backgroundColor: theme.primaryDark }]}
+              onPress={saveProduct}>
               <ThemedText type="subtitle" style={styles.addText}>Guardar producto</ThemedText>
             </Pressable>
             <Pressable style={styles.cancelButton} onPress={() => setModalVisible(false)}>
@@ -165,7 +169,9 @@ export default function InventoryScreen() {
               keyboardType="number-pad"
               style={[styles.input, { color: theme.text }]}
             />
-            <Pressable style={styles.saveButton} onPress={restock}>
+            <Pressable
+              style={[styles.saveButton, { backgroundColor: theme.primaryDark }]}
+              onPress={restock}>
               <ThemedText type="subtitle" style={styles.addText}>Sumar al stock</ThemedText>
             </Pressable>
             <Pressable
@@ -210,18 +216,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: Spacing.two,
   },
-  addButton: { minHeight: 56, borderRadius: Spacing.three, backgroundColor: '#208AEF', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: Spacing.two },
+  addButton: { minHeight: 56, borderRadius: Spacing.three, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: Spacing.two },
   addText: { color: '#FFFFFF' },
   list: { gap: Spacing.two, paddingVertical: Spacing.three },
   productRow: { flexDirection: 'row', borderRadius: Spacing.three, padding: Spacing.three, gap: Spacing.two },
   productInfo: { flex: 1, gap: Spacing.half },
   stockInfo: { width: 132, alignItems: 'flex-end', gap: Spacing.half },
   lowBadge: { color: '#FFFFFF', backgroundColor: '#DC2626', borderRadius: 999, overflow: 'hidden', paddingHorizontal: Spacing.two, paddingVertical: Spacing.half },
-  restockButton: { marginTop: Spacing.one, backgroundColor: '#DCFCE7', borderRadius: Spacing.two, paddingHorizontal: Spacing.two, paddingVertical: Spacing.one, flexDirection: 'row', alignItems: 'center', gap: Spacing.half },
+  restockButton: { marginTop: Spacing.one, backgroundColor: '#E8F2FF', borderRadius: Spacing.two, paddingHorizontal: Spacing.two, paddingVertical: Spacing.one, flexDirection: 'row', alignItems: 'center', gap: Spacing.half },
   restockText: { color: '#166534' },
   modalOverlay: { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)', padding: Spacing.four },
   modal: { borderRadius: Spacing.four, padding: Spacing.four, gap: Spacing.two },
   input: { minHeight: 52, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: Spacing.two, paddingHorizontal: Spacing.three },
-  saveButton: { minHeight: 56, borderRadius: Spacing.two, backgroundColor: '#16A34A', alignItems: 'center', justifyContent: 'center' },
+  saveButton: { minHeight: 56, borderRadius: Spacing.two, alignItems: 'center', justifyContent: 'center' },
   cancelButton: { minHeight: 44, alignItems: 'center', justifyContent: 'center' },
 });

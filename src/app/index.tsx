@@ -119,7 +119,7 @@ export default function SalesScreen() {
                   {
                     backgroundColor:
                       lines.some((line) => line.idProducto === product.id)
-                        ? '#DCFCE7'
+                        ? theme.primarySoft
                         : theme.backgroundElement,
                   },
                 ]}>
@@ -140,7 +140,9 @@ export default function SalesScreen() {
               <ThemedText type="subtitle">{selected.nombre}</ThemedText>
               <ThemedText themeColor="textSecondary">Disponible: {selected.stock_actual}</ThemedText>
               <ThemedView style={styles.stepper}>
-                <Pressable style={styles.stepButton} onPress={() => changeQuantity(-1)}>
+                <Pressable
+                  style={[styles.stepButton, { backgroundColor: theme.primary }]}
+                  onPress={() => changeQuantity(-1)}>
                   <SymbolView
                     name={{ ios: 'minus', android: 'remove', web: 'remove' }}
                     size={28}
@@ -165,7 +167,9 @@ export default function SalesScreen() {
                   inputMode="numeric"
                   style={[styles.quantityInput, { color: theme.text }]}
                 />
-                <Pressable style={styles.stepButton} onPress={() => changeQuantity(1)}>
+                <Pressable
+                  style={[styles.stepButton, { backgroundColor: theme.primary }]}
+                  onPress={() => changeQuantity(1)}>
                   <SymbolView
                     name={{ ios: 'plus', android: 'add', web: 'add' }}
                     size={28}
@@ -176,7 +180,7 @@ export default function SalesScreen() {
             </ThemedView>
           )}
 
-          <ThemedView style={styles.totalCard}>
+          <ThemedView style={[styles.totalCard, { borderColor: theme.primary }]}>
             <ThemedView style={styles.totalLabel}>
               <SymbolView
                 name={{ ios: 'creditcard.fill', android: 'payments', web: 'payments' }}
@@ -188,7 +192,9 @@ export default function SalesScreen() {
             <ThemedText type="title">{currency.format(total)}</ThemedText>
           </ThemedView>
 
-          <Pressable style={styles.confirmButton} onPress={confirmSale}>
+          <Pressable
+            style={[styles.confirmButton, { backgroundColor: theme.primaryDark }]}
+            onPress={confirmSale}>
             <SymbolView
               name={{ ios: 'cart.fill', android: 'shopping_cart_checkout', web: 'shopping_cart_checkout' }}
               size={24}
@@ -243,7 +249,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#208AEF',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -256,7 +261,7 @@ const styles = StyleSheet.create({
   totalCard: {
     borderRadius: Spacing.three,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
+    borderColor: '#208AEF',
     padding: Spacing.three,
   },
   totalLabel: {
@@ -267,7 +272,6 @@ const styles = StyleSheet.create({
   confirmButton: {
     minHeight: 64,
     borderRadius: Spacing.three,
-    backgroundColor: '#16A34A',
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
