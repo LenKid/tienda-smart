@@ -180,12 +180,16 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingHorizontal: Spacing.four,
     paddingBottom: Platform.select({
-      web: 96,
+      web: 84,
       default: BottomTabInset + Spacing.three,
     }),
   },
   scroll: { flex: 1, width: '100%', height: '100%' },
-  content: { gap: Spacing.three, paddingVertical: Spacing.four },
+  content: {
+    gap: Spacing.three,
+    paddingTop: Platform.select({ web: 96, default: Spacing.four }),
+    paddingBottom: Spacing.four,
+  },
   sectionTitle: { marginTop: Spacing.two },
   products: { gap: Spacing.two },
   productCard: {

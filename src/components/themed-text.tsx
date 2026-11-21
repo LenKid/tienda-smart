@@ -11,7 +11,13 @@ export type ThemedTextProps = TextProps & {
 export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
   const theme = useTheme();
 
-  return <Text style={[{ color: theme[themeColor ?? 'text'] }, styles[type], style]} {...rest} />;
+  return (
+    <Text
+      accessibilityRole={rest.accessibilityRole ?? (type === 'title' ? 'header' : undefined)}
+      style={[{ color: theme[themeColor ?? 'text'] }, styles[type], style]}
+      {...rest}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
@@ -31,13 +37,13 @@ const styles = StyleSheet.create({
     fontWeight: 500,
   },
   title: {
-    fontSize: 48,
+    fontSize: 24,
     fontWeight: 600,
-    lineHeight: 52,
+    lineHeight: 32,
   },
   subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
+    fontSize: 20,
+    lineHeight: 28,
     fontWeight: 600,
   },
   link: {

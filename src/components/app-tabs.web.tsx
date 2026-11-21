@@ -1,5 +1,6 @@
 import { Tabs, TabList, TabTrigger, TabSlot, TabListProps } from 'expo-router/ui';
-import { View, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 
@@ -34,10 +35,27 @@ export default function AppTabs() {
 }
 
 export function CustomTabList(props: TabListProps) {
+  const { width } = useWindowDimensions();
+  const phone = width < 768;
+
   return (
-    <View {...props} style={styles.tabListContainer}>
+    <View
+      {...props}
+      style={[
+        styles.tabListContainer,
+        phone ? styles.tabListPhone : styles.tabListDesktop,
+      ]}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>Tienda Smart</ThemedText>
+        {!phone && (
+          <View style={styles.brand}>
+            <Image
+              source={require('@/assets/images/tienda-smart-logo.svg')}
+              style={styles.brandIcon}
+              contentFit="cover"
+            />
+            <ThemedText type="smallBold" style={styles.brandText}>Tienda Smart</ThemedText>
+          </View>
+        )}
 
         {props.children}
 
@@ -61,13 +79,18 @@ const styles = StyleSheet.create({
     minHeight: 0,
   },
   tabListContainer: {
-    position: 'absolute',
-    bottom: 16,
     width: '100%',
-    padding: Spacing.three,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
+  },
+  tabListDesktop: {
+    position: 'absolute',
+    top: 12,
+  },
+  tabListPhone: {
+    position: 'absolute',
+    bottom: 12,
   },
   innerContainer: {
     paddingVertical: Spacing.two,
@@ -78,6 +101,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     gap: Spacing.two,
     maxWidth: MaxContentWidth,
+  },
+  brand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  brandIcon: {
+    width: 32,
+    height: 32,
   },
   brandText: {
     marginRight: 'auto',
