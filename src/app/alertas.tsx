@@ -6,6 +6,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BottomTabInset, Spacing } from '@/constants/theme';
 import { useInventory } from '@/hooks/use-inventory';
 import { listarProductosUrgentes } from '@/utils/prediccion';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const currency = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -21,7 +22,10 @@ export default function AlertsScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ThemedView style={styles.header}>
-          <ThemedText type="title">Alertas y predicción</ThemedText>
+          <ThemedView style={styles.titleRow}>
+            <ThemedText type="title">Alertas y predicción</ThemedText>
+            <ThemeToggle />
+          </ThemedView>
           <ThemedText themeColor="textSecondary">Demanda calculada con los últimos 7 días</ThemedText>
         </ThemedView>
         {urgent.length === 0 ? (
@@ -73,6 +77,13 @@ const styles = StyleSheet.create({
     paddingTop: Platform.select({ web: 96, default: Spacing.four }),
     paddingBottom: Spacing.three,
     gap: Spacing.one,
+  },
+  titleRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
   },
   list: { gap: Spacing.three, paddingBottom: Spacing.four },
   alertCard: { borderWidth: 1, borderColor: '#FECACA', borderRadius: Spacing.three, backgroundColor: '#FFF1F2', padding: Spacing.three, gap: Spacing.one },

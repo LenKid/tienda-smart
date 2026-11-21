@@ -4,9 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInventory } from '@/hooks/use-inventory';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const currency = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -170,6 +171,7 @@ function ViewHeader({ title }: { title: string }) {
   return (
     <ThemedView style={styles.header}>
       <ThemedText type="title">{title}</ThemedText>
+      <ThemeToggle />
     </ThemedView>
   );
 }
@@ -181,12 +183,16 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     paddingHorizontal: Spacing.four,
-    paddingBottom: Platform.select({ web: 84, default: BottomTabInset }),
+    paddingBottom: Platform.select({ web: 84, default:  Spacing.two }),
   },
   scroll: { flex: 1, width: '100%', height: '100%' },
   header: {
-    paddingTop: Platform.select({ web: 96, default: Spacing.four }),
+    paddingTop: Platform.select({ web: 96, default:  Spacing.three }),
     paddingBottom: Spacing.three,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
   },
   addButton: { minHeight: 56, borderRadius: Spacing.three, backgroundColor: '#208AEF', alignItems: 'center', justifyContent: 'center' },
   addText: { color: '#FFFFFF' },

@@ -4,9 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { BottomTabInset, Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInventory } from '@/hooks/use-inventory';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 const currency = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -98,7 +99,10 @@ export default function SalesScreen() {
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-          <ThemedText type="title">Registrar venta</ThemedText>
+          <ThemedView style={styles.titleRow}>
+            <ThemedText type="title">Registrar venta</ThemedText>
+            <ThemeToggle />
+          </ThemedView>
           <ThemedText themeColor="textSecondary">
             Selecciona un producto y confirma en pocos toques.
           </ThemedText>
@@ -181,7 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.four,
     paddingBottom: Platform.select({
       web: 84,
-      default: BottomTabInset + Spacing.three,
+      default: Spacing.three,
     }),
   },
   scroll: { flex: 1, width: '100%', height: '100%' },
@@ -189,6 +193,13 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
     paddingTop: Platform.select({ web: 96, default: Spacing.four }),
     paddingBottom: Spacing.four,
+  },
+  titleRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.two,
   },
   sectionTitle: { marginTop: Spacing.two },
   products: { gap: Spacing.two },
