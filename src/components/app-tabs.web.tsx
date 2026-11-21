@@ -1,6 +1,7 @@
 import { Tabs, TabList, TabTrigger, TabSlot, TabListProps } from 'expo-router/ui';
 import { Image } from 'expo-image';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import { SymbolView } from 'expo-symbols';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
 
@@ -15,16 +16,19 @@ export default function AppTabs() {
         <CustomTabList>
           <TabTrigger name="home" href="/">
             <ThemedView type="backgroundElement" style={styles.tabButtonView}>
+              <SymbolView name={{ ios: 'cart.fill', android: 'shopping_cart', web: 'shopping_cart' }} size={18} />
               <ThemedText type="small">Venta</ThemedText>
             </ThemedView>
           </TabTrigger>
           <TabTrigger name="inventario" href="/inventario">
             <ThemedView type="backgroundElement" style={styles.tabButtonView}>
+              <SymbolView name={{ ios: 'cube.box.fill', android: 'inventory_2', web: 'inventory_2' }} size={18} />
               <ThemedText type="small">Inventario</ThemedText>
             </ThemedView>
           </TabTrigger>
           <TabTrigger name="alertas" href="/alertas">
             <ThemedView type="backgroundElement" style={styles.tabButtonView}>
+              <SymbolView name={{ ios: 'bell.badge.fill', android: 'notifications', web: 'notifications' }} size={18} />
               <ThemedText type="small">Alertas</ThemedText>
             </ThemedView>
           </TabTrigger>
@@ -121,6 +125,9 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.half,
   },
   externalPressable: {
     flexDirection: 'row',

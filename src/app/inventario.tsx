@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Alert, Modal, Platform, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
 
+import { ThemeToggle } from '@/components/theme-toggle';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInventory } from '@/hooks/use-inventory';
-import { ThemeToggle } from '@/components/theme-toggle';
 
 const currency = new Intl.NumberFormat('es-CO', {
   style: 'currency',
@@ -79,7 +80,12 @@ export default function InventoryScreen() {
       <SafeAreaView style={styles.safeArea}>
         <ViewHeader title="Inventario" />
         <Pressable style={styles.addButton} onPress={() => setModalVisible(true)}>
-          <ThemedText type="subtitle" style={styles.addText}>+ Nuevo producto</ThemedText>
+          <SymbolView
+            name={{ ios: 'plus', android: 'add', web: 'add' }}
+            size={22}
+            tintColor="#FFFFFF"
+          />
+          <ThemedText type="smallBold" style={styles.addText}>Nuevo producto</ThemedText>
         </Pressable>
 
         <ScrollView style={styles.scroll} contentContainerStyle={styles.list}>
@@ -88,6 +94,11 @@ export default function InventoryScreen() {
             return (
               <ThemedView key={product.id} type="backgroundElement" style={styles.productRow}>
                 <ThemedView style={styles.productInfo}>
+                  <SymbolView
+                    name={{ ios: 'cube.box.fill', android: 'inventory_2', web: 'inventory_2' }}
+                    size={20}
+                    tintColor={low ? '#DC2626' : theme.text}
+                  />
                   <ThemedText type="smallBold">{product.nombre}</ThemedText>
                   <ThemedText type="small" themeColor="textSecondary">{product.codigo}</ThemedText>
                   <ThemedText type="small">{currency.format(product.precio_venta)}</ThemedText>
@@ -99,7 +110,12 @@ export default function InventoryScreen() {
                   <Pressable
                     style={styles.restockButton}
                     onPress={() => setRestockId(product.id)}>
-                    <ThemedText type="smallBold" style={styles.restockText}>Sumar stock</ThemedText>
+                    <SymbolView
+                      name={{ ios: 'shippingbox.fill', android: 'add_box', web: 'add_box' }}
+                      size={16}
+                      tintColor="#166534"
+                    />
+                    <ThemedText type="smallBold" style={styles.restockText}>Sumar</ThemedText>
                   </Pressable>
                 </ThemedView>
               </ThemedView>
@@ -183,25 +199,25 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     paddingHorizontal: Spacing.four,
-    paddingBottom: Platform.select({ web: 84, default:  Spacing.two }),
+    paddingBottom: Platform.select({ web: 84 }),
   },
   scroll: { flex: 1, width: '100%', height: '100%' },
   header: {
-    paddingTop: Platform.select({ web: 96, default:  Spacing.three }),
+    paddingTop: Platform.select({ web: 96, default: Spacing.three }),
     paddingBottom: Spacing.three,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: Spacing.two,
   },
-  addButton: { minHeight: 56, borderRadius: Spacing.three, backgroundColor: '#208AEF', alignItems: 'center', justifyContent: 'center' },
+  addButton: { minHeight: 56, borderRadius: Spacing.three, backgroundColor: '#208AEF', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: Spacing.two },
   addText: { color: '#FFFFFF' },
   list: { gap: Spacing.two, paddingVertical: Spacing.three },
   productRow: { flexDirection: 'row', borderRadius: Spacing.three, padding: Spacing.three, gap: Spacing.two },
   productInfo: { flex: 1, gap: Spacing.half },
   stockInfo: { width: 132, alignItems: 'flex-end', gap: Spacing.half },
   lowBadge: { color: '#FFFFFF', backgroundColor: '#DC2626', borderRadius: 999, overflow: 'hidden', paddingHorizontal: Spacing.two, paddingVertical: Spacing.half },
-  restockButton: { marginTop: Spacing.one, backgroundColor: '#DCFCE7', borderRadius: Spacing.two, paddingHorizontal: Spacing.two, paddingVertical: Spacing.one },
+  restockButton: { marginTop: Spacing.one, backgroundColor: '#DCFCE7', borderRadius: Spacing.two, paddingHorizontal: Spacing.two, paddingVertical: Spacing.one, flexDirection: 'row', alignItems: 'center', gap: Spacing.half },
   restockText: { color: '#166534' },
   modalOverlay: { flex: 1, justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.45)', padding: Spacing.four },
   modal: { borderRadius: Spacing.four, padding: Spacing.four, gap: Spacing.two },

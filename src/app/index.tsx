@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -122,6 +123,11 @@ export default function SalesScreen() {
                         : theme.backgroundElement,
                   },
                 ]}>
+                <SymbolView
+                  name={{ ios: 'cube.box.fill', android: 'inventory_2', web: 'inventory_2' }}
+                  size={22}
+                  tintColor={lines.some((line) => line.idProducto === product.id) ? '#166534' : theme.text}
+                />
                 <ThemedText type="smallBold">{product.nombre}</ThemedText>
                 <ThemedText type="small">{currency.format(product.precio_venta)}</ThemedText>
                 <ThemedText type="small" themeColor="textSecondary">Stock: {product.stock_actual}</ThemedText>
@@ -135,7 +141,11 @@ export default function SalesScreen() {
               <ThemedText themeColor="textSecondary">Disponible: {selected.stock_actual}</ThemedText>
               <ThemedView style={styles.stepper}>
                 <Pressable style={styles.stepButton} onPress={() => changeQuantity(-1)}>
-                  <ThemedText type="title">−</ThemedText>
+                  <SymbolView
+                    name={{ ios: 'minus', android: 'remove', web: 'remove' }}
+                    size={28}
+                    tintColor="#FFFFFF"
+                  />
                 </Pressable>
                 <TextInput
                   value={quantity}
@@ -156,18 +166,34 @@ export default function SalesScreen() {
                   style={[styles.quantityInput, { color: theme.text }]}
                 />
                 <Pressable style={styles.stepButton} onPress={() => changeQuantity(1)}>
-                  <ThemedText type="title">+</ThemedText>
+                  <SymbolView
+                    name={{ ios: 'plus', android: 'add', web: 'add' }}
+                    size={28}
+                    tintColor="#FFFFFF"
+                  />
                 </Pressable>
               </ThemedView>
             </ThemedView>
           )}
 
           <ThemedView style={styles.totalCard}>
-            <ThemedText type="small">Total de venta</ThemedText>
+            <ThemedView style={styles.totalLabel}>
+              <SymbolView
+                name={{ ios: 'creditcard.fill', android: 'payments', web: 'payments' }}
+                size={18}
+                tintColor="#166534"
+              />
+              <ThemedText type="small">Total de venta</ThemedText>
+            </ThemedView>
             <ThemedText type="title">{currency.format(total)}</ThemedText>
           </ThemedView>
 
           <Pressable style={styles.confirmButton} onPress={confirmSale}>
+            <SymbolView
+              name={{ ios: 'cart.fill', android: 'shopping_cart_checkout', web: 'shopping_cart_checkout' }}
+              size={24}
+              tintColor="#FFFFFF"
+            />
             <ThemedText type="subtitle" style={styles.confirmText}>Confirmar venta</ThemedText>
           </Pressable>
         </ScrollView>
@@ -233,12 +259,19 @@ const styles = StyleSheet.create({
     borderColor: '#A7F3D0',
     padding: Spacing.three,
   },
+  totalLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
   confirmButton: {
     minHeight: 64,
     borderRadius: Spacing.three,
     backgroundColor: '#16A34A',
     alignItems: 'center',
     justifyContent: 'center',
+    flexDirection: 'row',
+    gap: Spacing.two,
   },
   confirmText: { color: '#FFFFFF' },
 });

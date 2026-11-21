@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet } from 'react-native';
+import { SymbolView } from 'expo-symbols';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -18,12 +19,14 @@ export function ThemeToggle() {
         styles.button,
         pressed && styles.pressed,
       ]}>
-      <ThemedView
-        type={scheme === 'dark' ? 'backgroundSelected' : 'backgroundElement'}
-        style={[
-          styles.thumb,
-          scheme === 'dark' ? styles.thumbDark : styles.thumbLight,
-        ]}
+      <SymbolView
+        name={{
+          ios: scheme === 'dark' ? 'moon.fill' : 'sun.max.fill',
+          android: scheme === 'dark' ? 'dark_mode' : 'light_mode',
+          web: scheme === 'dark' ? 'dark_mode' : 'light_mode',
+        }}
+        size={20}
+        tintColor={scheme === 'dark' ? '#FFFFFF' : '#208AEF'}
       />
       <ThemedText type="smallBold">
         {scheme === 'dark' ? 'Oscuro' : 'Claro'}
@@ -45,16 +48,5 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.7,
-  },
-  thumb: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  thumbLight: {
-    backgroundColor: '#208AEF',
-  },
-  thumbDark: {
-    backgroundColor: '#FFFFFF',
   },
 });

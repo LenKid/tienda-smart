@@ -1,5 +1,6 @@
 import { Platform, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SymbolView } from 'expo-symbols';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -30,6 +31,11 @@ export default function AlertsScreen() {
         </ThemedView>
         {urgent.length === 0 ? (
           <ThemedView type="backgroundElement" style={styles.empty}>
+            <SymbolView
+              name={{ ios: 'checkmark.seal.fill', android: 'verified', web: 'verified' }}
+              size={32}
+              tintColor="#16A34A"
+            />
             <ThemedText type="subtitle">Sin reabastecimientos urgentes</ThemedText>
             <ThemedText themeColor="textSecondary" style={styles.centerText}>
               Todos los productos tienen stock suficiente.
@@ -40,7 +46,14 @@ export default function AlertsScreen() {
             {urgent.map((product) => (
               <ThemedView key={product.id} style={styles.alertCard}>
                 <ThemedView style={styles.alertHeader}>
-                  <ThemedText type="subtitle">{product.nombre}</ThemedText>
+                  <ThemedView style={styles.alertTitle}>
+                    <SymbolView
+                      name={{ ios: 'exclamationmark.triangle.fill', android: 'warning', web: 'warning' }}
+                      size={20}
+                      tintColor="#DC2626"
+                    />
+                    <ThemedText type="subtitle">{product.nombre}</ThemedText>
+                  </ThemedView>
                   <ThemedText type="smallBold" style={styles.urgentBadge}>URGENTE</ThemedText>
                 </ThemedView>
                 <ThemedText>Quedan {product.stock_actual} unidades.</ThemedText>
@@ -88,6 +101,7 @@ const styles = StyleSheet.create({
   list: { gap: Spacing.three, paddingBottom: Spacing.four },
   alertCard: { borderWidth: 1, borderColor: '#FECACA', borderRadius: Spacing.three, backgroundColor: '#FFF1F2', padding: Spacing.three, gap: Spacing.one },
   alertHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  alertTitle: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one, flex: 1 },
   urgentBadge: { color: '#FFFFFF', backgroundColor: '#DC2626', borderRadius: 999, overflow: 'hidden', paddingHorizontal: Spacing.two, paddingVertical: Spacing.half },
   purchase: { color: '#92400E', marginTop: Spacing.one },
   empty: { borderRadius: Spacing.three, padding: Spacing.four, alignItems: 'center', gap: Spacing.two },
