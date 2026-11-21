@@ -22,7 +22,14 @@ export type VentaLinea = {
   cantidad: number;
 };
 
-const db = SQLite.openDatabaseSync('tienda-smart.db');
+let databasePromise: Promise<SQLite.SQLiteDatabase> | null = null;
+
+function getDatabase() {
+  if (!databasePromise) {
+    databasePromise = SQLite.openDatabaseAsync('tienda-smart.db');
+  }
+  return databasePromise;
+}
 
 export function localIsoDate(date = new Date()) {
   const year = date.getFullYear();
@@ -31,9 +38,10 @@ export function localIsoDate(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
-export function initializeDatabase() {
-  db.execSync('PRAGMA foreign_keys = ON');
-  db.execSync(`
+export async function initializeDatabase() {
+  const db = await getDatabase();
+  await db.execAsync('PRAGMA foreign_keys = ON');
+  await db.execAsync(`
     CREATE TABLE IF NOT EXISTS Productos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       codigo TEXT UNIQUE NOT NULL,
@@ -52,26 +60,28 @@ export function initializeDatabase() {
     );
   `);
 
-  const result = db.getFirstSync<{ count: number }>('SELECT COUNT(*) AS count FROM Productos');
+  const result = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) AS count FROM Productos',
+  );
   if ((result?.count ?? 0) > 0) return;
 
-  db.withTransactionSync(() => {
-    db.runSync(
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
       `INSERT INTO Productos (codigo, nombre, precio_venta, stock_actual, stock_minimo)
        VALUES (?, ?, ?, ?, ?)`,
       ['ML-001', 'Bolsa de leche', 3200, 18, 5],
     );
-    db.runSync(
+    await db.runAsync(
       `INSERT INTO Productos (codigo, nombre, precio_venta, stock_actual, stock_minimo)
        VALUES (?, ?, ?, ?, ?)`,
       ['AR-001', 'Libra de arroz', 2500, 20, 6],
     );
-    db.runSync(
+    await db.runAsync(
       `INSERT INTO Productos (codigo, nombre, precio_venta, stock_actual, stock_minimo)
        VALUES (?, ?, ?, ?, ?)`,
       ['AZ-001', 'Kg de azúcar', 4000, 12, 4],
     );
-    db.runSync(
+    await db.runAsync(
       `INSERT INTO Productos (codigo, nombre, precio_venta, stock_actual, stock_minimo)
        VALUES (?, ?, ?, ?, ?)`,
       ['PA-001', 'Pan tajado', 5500, 10, 3],
@@ -90,12 +100,12 @@ export function initializeDatabase() {
     for (const [daysAgo, productId, cantidad] of seedSales) {
       const date = new Date();
       date.setDate(date.getDate() - daysAgo);
-      const product = db.getFirstSync<{ precio_venta: number }>(
+      const product = await db.getFirstAsync<{ precio_venta: number }>(
         'SELECT precio_venta FROM Productos WHERE id = ?',
         [productId],
       );
       if (!product) continue;
-      db.runSync(
+      await db.runAsync(
         `INSERT INTO Historial_Ventas (fecha, id_producto, cantidad, total_venta)
          VALUES (?, ?, ?, ?)`,
         [localIsoDate(date), productId, cantidad, cantidad * product.precio_venta],
@@ -104,14 +114,16 @@ export function initializeDatabase() {
   });
 }
 
-export function getProducts() {
-  return db.getAllSync<Producto>('SELECT * FROM Productos ORDER BY nombre ASC');
+export async function getProducts() {
+  const db = await getDatabase();
+  return db.getAllAsync<Producto>('SELECT * FROM Productos ORDER BY nombre ASC');
 }
 
-export function getSalesLastSevenDays() {
+export async function getSalesLastSevenDays() {
+  const db = await getDatabase();
   const since = new Date();
   since.setDate(since.getDate() - 6);
-  return db.getAllSync<VentaHistorial & { nombre?: string }>(
+  return db.getAllAsync<VentaHistorial>(
     `SELECT * FROM Historial_Ventas
      WHERE fecha >= ?
      ORDER BY fecha DESC, id DESC`,
@@ -119,39 +131,45 @@ export function getSalesLastSevenDays() {
   );
 }
 
-export function createProduct(input: {
+export async function createProduct(input: {
   codigo: string;
   nombre: string;
   precioVenta: number;
   stockActual: number;
   stockMinimo: number;
 }) {
-  db.runSync(
+  const db = await getDatabase();
+  await db.runAsync(
     `INSERT INTO Productos (codigo, nombre, precio_venta, stock_actual, stock_minimo)
      VALUES (?, ?, ?, ?, ?)`,
     [input.codigo, input.nombre, input.precioVenta, input.stockActual, input.stockMinimo],
   );
 }
 
-export function restockProduct(id: number, cantidad: number) {
+export async function restockProduct(id: number, cantidad: number) {
   if (!Number.isInteger(cantidad) || cantidad <= 0) {
     throw new Error('La cantidad de reposición debe ser un entero positivo.');
   }
-  db.runSync('UPDATE Productos SET stock_actual = stock_actual + ? WHERE id = ?', [cantidad, id]);
+  const db = await getDatabase();
+  await db.runAsync(
+    'UPDATE Productos SET stock_actual = stock_actual + ? WHERE id = ?',
+    [cantidad, id],
+  );
 }
 
-export function createSale(lines: VentaLinea[]) {
+export async function createSale(lines: VentaLinea[]) {
   if (lines.length === 0 || lines.length > 3) {
     throw new Error('Una venta debe contener entre 1 y 3 productos.');
   }
 
-  db.withTransactionSync(() => {
+  const db = await getDatabase();
+  await db.withTransactionAsync(async () => {
     for (const line of lines) {
       if (!Number.isInteger(line.cantidad) || line.cantidad <= 0) {
         throw new Error('Las cantidades deben ser enteros positivos.');
       }
 
-      const product = db.getFirstSync<Producto>(
+      const product = await db.getFirstAsync<Producto>(
         'SELECT * FROM Productos WHERE id = ?',
         [line.idProducto],
       );
@@ -161,12 +179,12 @@ export function createSale(lines: VentaLinea[]) {
       }
 
       const total = line.cantidad * product.precio_venta;
-      db.runSync(
+      await db.runAsync(
         `INSERT INTO Historial_Ventas (fecha, id_producto, cantidad, total_venta)
          VALUES (?, ?, ?, ?)`,
         [localIsoDate(), line.idProducto, line.cantidad, total],
       );
-      db.runSync(
+      await db.runAsync(
         'UPDATE Productos SET stock_actual = stock_actual - ? WHERE id = ?',
         [line.cantidad, line.idProducto],
       );

@@ -59,7 +59,7 @@ export default function SalesScreen() {
     setQuantity('1');
   };
 
-  const confirmSale = () => {
+  const confirmSale = async () => {
     if (!selected && lines.length === 0) {
       Alert.alert('Selecciona un producto', 'Elige el producto que se está vendiendo.');
       return;
@@ -84,7 +84,7 @@ export default function SalesScreen() {
     }
 
     try {
-      registerSale(lines);
+      await registerSale(lines);
       Alert.alert('Venta registrada', `Se confirmaron ${lines.length} productos.`);
       setQuantity('1');
       setProductId(null);

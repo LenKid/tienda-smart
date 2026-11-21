@@ -29,7 +29,7 @@ export default function InventoryScreen() {
 
   const positiveInteger = (value: string) => /^\d+$/.test(value) && Number(value) > 0;
 
-  const saveProduct = () => {
+  const saveProduct = async () => {
     if (!codigo.trim() || !nombre.trim()) {
       Alert.alert('Datos incompletos', 'Escribe el código y el nombre del producto.');
       return;
@@ -39,7 +39,7 @@ export default function InventoryScreen() {
       return;
     }
     try {
-      addProduct({
+      await addProduct({
         codigo: codigo.trim().toUpperCase(),
         nombre: nombre.trim(),
         precioVenta: Number(precio),
@@ -58,13 +58,13 @@ export default function InventoryScreen() {
     }
   };
 
-  const restock = () => {
+  const restock = async () => {
     if (restockId === null || !positiveInteger(restockQuantity)) {
       Alert.alert('Cantidad inválida', 'Ingresa un entero positivo.');
       return;
     }
     try {
-      addStock(restockId, Number(restockQuantity));
+      await addStock(restockId, Number(restockQuantity));
       setRestockId(null);
       setRestockQuantity('');
       Alert.alert('Stock actualizado', 'La llegada fue registrada.');

@@ -17,16 +17,16 @@ type InventoryContextValue = {
   recentSales: VentaHistorial[];
   loading: boolean;
   error: string | null;
-  refresh: () => void;
-  registerSale: (lines: VentaLinea[]) => void;
+  refresh: () => Promise<void>;
+  registerSale: (lines: VentaLinea[]) => Promise<void>;
   addProduct: (input: {
     codigo: string;
     nombre: string;
     precioVenta: number;
     stockActual: number;
     stockMinimo: number;
-  }) => void;
-  addStock: (id: number, cantidad: number) => void;
+  }) => Promise<void>;
+  addStock: (id: number, cantidad: number) => Promise<void>;
 };
 
 const InventoryContext = createContext<InventoryContextValue | null>(null);
@@ -37,36 +37,42 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(() => {
-    setProducts(getProducts());
-    setRecentSales(getSalesLastSevenDays());
+  const refresh = useCallback(async () => {
+    const [nextProducts, nextSales] = await Promise.all([
+      getProducts(),
+      getSalesLastSevenDays(),
+    ]);
+    setProducts(nextProducts);
+    setRecentSales(nextSales);
   }, []);
 
   useEffect(() => {
-    try {
-      initializeDatabase();
-      refresh();
-      setError(null);
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : 'No se pudo abrir la base de datos.');
-    } finally {
-      setLoading(false);
-    }
+    void (async () => {
+      try {
+        await initializeDatabase();
+        await refresh();
+        setError(null);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : 'No se pudo abrir la base de datos.');
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [refresh]);
 
-  const registerSale = useCallback((lines: VentaLinea[]) => {
-    createSale(lines);
-    refresh();
+  const registerSale = useCallback(async (lines: VentaLinea[]) => {
+    await createSale(lines);
+    await refresh();
   }, [refresh]);
 
-  const addProduct = useCallback((input: Parameters<typeof createProduct>[0]) => {
-    createProduct(input);
-    refresh();
+  const addProduct = useCallback(async (input: Parameters<typeof createProduct>[0]) => {
+    await createProduct(input);
+    await refresh();
   }, [refresh]);
 
-  const addStock = useCallback((id: number, cantidad: number) => {
-    restockProduct(id, cantidad);
-    refresh();
+  const addStock = useCallback(async (id: number, cantidad: number) => {
+    await restockProduct(id, cantidad);
+    await refresh();
   }, [refresh]);
 
   const value = useMemo(
