@@ -173,17 +173,18 @@ export default function SalesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, width: '100%' },
+  container: { flex: 1, width: '100%', height: '100%' },
   safeArea: {
     flex: 1,
     width: '100%',
+    height: '100%',
     paddingHorizontal: Spacing.four,
     paddingBottom: Platform.select({
       web: 96,
       default: BottomTabInset + Spacing.three,
     }),
   },
-  scroll: { flex: 1, width: '100%' },
+  scroll: { flex: 1, width: '100%', height: '100%' },
   content: { gap: Spacing.three, paddingVertical: Spacing.four },
   sectionTitle: { marginTop: Spacing.two },
   products: { gap: Spacing.two },

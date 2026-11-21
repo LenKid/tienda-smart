@@ -60,14 +60,15 @@ export default function AlertsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, width: '100%' },
+  container: { flex: 1, width: '100%', height: '100%' },
   safeArea: {
     flex: 1,
     width: '100%',
+    height: '100%',
     paddingHorizontal: Spacing.four,
     paddingBottom: Platform.select({ web: 96, default: BottomTabInset }),
   },
-  scroll: { flex: 1, width: '100%' },
+  scroll: { flex: 1, width: '100%', height: '100%' },
   header: { paddingVertical: Spacing.four, gap: Spacing.one },
   list: { gap: Spacing.three, paddingBottom: Spacing.four },
   alertCard: { borderLeftWidth: 6, borderLeftColor: '#F59E0B', borderRadius: Spacing.three, backgroundColor: '#FEF3C7', padding: Spacing.three, gap: Spacing.one },

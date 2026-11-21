@@ -8,8 +8,8 @@ import { ThemedView } from './themed-view';
 
 export default function AppTabs() {
   return (
-    <Tabs>
-      <TabSlot style={{ flex: 1, height: '100%' }} />
+    <Tabs style={styles.tabs}>
+      <TabSlot style={styles.tabSlot} />
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="home" href="/">
@@ -47,6 +47,19 @@ export function CustomTabList(props: TabListProps) {
 }
 
 const styles = StyleSheet.create({
+  tabs: {
+    width: '100%',
+    height: '100%',
+    minHeight: '100%',
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  tabSlot: {
+    width: '100%',
+    flex: 1,
+    height: '100%',
+    minHeight: 0,
+  },
   tabListContainer: {
     position: 'absolute',
     bottom: 16,

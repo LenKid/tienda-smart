@@ -175,14 +175,15 @@ function ViewHeader({ title }: { title: string }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, width: '100%' },
+  container: { flex: 1, width: '100%', height: '100%' },
   safeArea: {
     flex: 1,
     width: '100%',
+    height: '100%',
     paddingHorizontal: Spacing.four,
     paddingBottom: Platform.select({ web: 96, default: BottomTabInset }),
   },
-  scroll: { flex: 1, width: '100%' },
+  scroll: { flex: 1, width: '100%', height: '100%' },
   header: { paddingVertical: Spacing.four },
   addButton: { minHeight: 56, borderRadius: Spacing.three, backgroundColor: '#208AEF', alignItems: 'center', justifyContent: 'center' },
   addText: { color: '#FFFFFF' },
