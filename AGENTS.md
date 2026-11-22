@@ -1,41 +1,41 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+This is an Expo SDK 58 / React Native 0.88 / React 19.3 mobile & web app (`tienda-smart`) using Expo Router, `expo-sqlite`, and strict TypeScript.
 
 ## Expo has changed — do not trust your training data
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+Before writing code that touches an Expo, EAS, or React Native API:
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
+1. Check `expo` major version in `package.json` (currently `~58.0.26`).
+2. Fetch matching versioned docs: `https://docs.expo.dev/versions/v58.0.0/`
+3. For anything else, fetch `https://docs.expo.dev/llms.txt` and follow its links; never answer from memory.
 
 ## Commands
 
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
+Use `npm` (`package-lock.json` is present; no Bun lockfile).
 
 ```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
+npx expo install <package>  # ALWAYS use instead of npm install <pkg> — resolves SDK-compatible versions
+npx expo start              # start dev server (--android | --ios | --web)
+npm run lint                # expo lint
+npx tsc --noEmit            # typecheck (strict mode)
 npx expo-doctor             # diagnose dependency and config issues
 npx expo install --fix      # fix incompatible package versions
 ```
 
-Run lint and typecheck before declaring any task done.
+- Run `npm run lint` and `npx tsc --noEmit` before declaring any task done.
+- There is no test runner/Jest configured in `package.json`; do not invent test commands.
+- `npm run reset-project` (`scripts/reset-project.js`) destructively moves/deletes `src/` and `scripts/` — never run it as routine setup.
 
-## Navigation & Routing
+## Architecture & Conventions
 
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
+- **Routing (`src/app/`)**: Expo Router file-based screens (`index.tsx` = Venta, `inventario.tsx` = Inventario, `alertas.tsx` = Alertas). `src/app/_layout.tsx` wraps the app in `ThemePreferenceProvider` -> `ThemeProvider` -> `InventoryProvider` -> `AppTabs`.
+- **Platform-specific tabs**: `src/components/app-tabs.tsx` (native `expo-router/native-tabs`) and `src/components/app-tabs.web.tsx` (`expo-router/ui`). Keep route names/hrefs aligned across both when changing tabs.
+- **Data & domain logic**: `database/db.ts` (`expo-sqlite`, `tienda-smart.db` with `Productos` and `Historial_Ventas`, auto-seeded on first launch) and `utils/prediccion.ts` live at the repo root outside `src/`. Access inventory state and mutations through `useInventory()` (`src/hooks/use-inventory.tsx`).
+- **Path aliases (`tsconfig.json`)**: `@/*` -> `src/*`, `@/assets/*` -> `assets/*`, `@/database/*` / `database/*` -> `database/*`, `@/utils/*` / `utils/*` -> `utils/*`.
+- **Web SQLite (`metro.config.js`)**: Configures `.wasm` asset extension and `COEP: credentialless` / `COOP: same-origin` headers required by `expo-sqlite` on web — preserve these when editing Metro config.
+- **UI & theming**: Use `Colors`, `Spacing`, `BottomTabInset`, `MaxContentWidth` from `src/constants/theme.ts`, `useTheme()` / `useThemePreference()`, and existing wrappers (`ThemedText`, `ThemedView`, `Collapsible`).
 
-## Building with EAS
+## Native & EAS Rules
 
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
-
-## Rules
-
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+- `ios/` and `android/` do not exist (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
+- Expo Go only includes bundled native modules; adding native libraries requires a development build (`npx expo run:ios|android` or `npx eas-cli@latest build --profile development`).
+- Run EAS CLI as `npx eas-cli@latest <command>` for cloud builds/updates (`eas.json` is not yet configured).

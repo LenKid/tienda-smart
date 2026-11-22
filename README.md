@@ -54,3 +54,74 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+## Pseudocódigo de los procesos principales
+
+**PROCESO InicializarAplicacion**
+
+ENTRADA: Ninguna
+
+base_datos ← AbrirSQLite()
+
+base_datos.CrearTabla("Productos")
+base_datos.CrearTabla("Historial_Ventas")
+
+SI la tabla Productos está vacía ENTONCES
+
+    Cargar4ProductosEjemplo()
+    CargarVentasUltimos7Dias()
+
+FIN SI
+
+SALIDA: Aplicacion_lista
+
+
+**PROCESO RegistrarVenta**
+
+ENTRADA: lista_productos, lista_cantidades
+
+PARA CADA producto_seleccionado
+
+    SI cantidad no es entero positivo o excede el stock ENTONCES
+
+        MostrarAlerta("Venta inválida")
+        DetenerProceso()
+
+    FIN SI
+
+FIN PARA
+
+IniciarTransaccion()
+
+PARA CADA producto_seleccionado
+
+    RegistrarVentaEnHistorial(producto, cantidad)
+    RestarCantidadDelStock(producto, cantidad)
+
+FIN PARA
+
+ConfirmarTransaccion()
+
+SALIDA: Venta_registrada, stock_actualizado
+
+
+**PROCESO CalcularReabastecimiento**
+
+ENTRADA: lista_productos, historial_ventas
+
+PARA CADA producto
+
+    ventas_7_dias ← SumarVentas(producto, últimos 7 días)
+    promedio_diario ← ventas_7_dias / 7
+    dias_restantes ← stock_actual / promedio_diario
+
+    SI stock_actual ≤ stock_minimo o dias_restantes ≤ 3 ENTONCES
+
+        compra_semanal ← Máximo(0, promedio_diario × 7 + stock_minimo - stock_actual)
+        AgregarAListaUrgente(producto, compra_semanal)
+
+    FIN SI
+
+FIN PARA
+
+SALIDA: lista_urgente

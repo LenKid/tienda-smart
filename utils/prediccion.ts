@@ -25,7 +25,7 @@ export function calcularPrediccion(
     (promedioDiario > 0 && diasRestantes <= 3);
   const cantidadSugerida = Math.max(
     0,
-    Math.ceil(promedioDiario * 7 + producto.stock_minimo - producto.stock_actual),
+    Math.ceil(cantidadVendida + producto.stock_minimo - producto.stock_actual),
   );
 
   return { promedioDiario, diasRestantes, esUrgente, cantidadSugerida };

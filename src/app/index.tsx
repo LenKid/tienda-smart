@@ -16,53 +16,59 @@ const currency = new Intl.NumberFormat('es-CO', {
   maximumFractionDigits: 0,
 });
 
+const MAX_PRODUCTS = 3;
+const isPositiveInteger = (text: string) => /^\d+$/.test(text);
+
 export default function SalesScreen() {
   const { products, registerSale } = useInventory();
   const scheme = useColorScheme();
   const theme = Colors[scheme === 'dark' ? 'dark' : 'light'];
-  const [productId, setProductId] = useState<number | null>(null);
-  const [quantity, setQuantity] = useState('1');
-  const [lines, setLines] = useState<Array<{ idProducto: number; cantidad: number }>>([]);
 
-  const selected = products.find((product) => product.id === productId) ?? null;
-  const parsedQuantity = /^\d+$/.test(quantity) ? Number(quantity) : 0;
+  // Cada producto es un "toggle": si está en esta lista, está seleccionado.
+  // `texto` guarda lo que el usuario escribe (puede estar vacío o ser inválido).
+  const [selection, setSelection] = useState<Array<{ idProducto: number; texto: string }>>([]);
+
+  const lines = selection.map((item) => ({
+    idProducto: item.idProducto,
+    cantidad: isPositiveInteger(item.texto) ? Number(item.texto) : 0,
+  }));
   const total = lines.reduce((sum, line) => {
     const product = products.find((item) => item.id === line.idProducto);
     return sum + (product ? product.precio_venta * line.cantidad : 0);
   }, 0);
 
-  const changeQuantity = (amount: number) => {
-    const next = String(Math.max(1, (parsedQuantity || 0) + amount));
-    setQuantity(next);
-    if (productId !== null) {
-      setLines((current) =>
-        current.map((line) =>
-          line.idProducto === productId
-            ? { ...line, cantidad: Number(next) }
-            : line,
-        ),
-      );
-    }
-  };
+  const isSelected = (id: number) => selection.some((item) => item.idProducto === id);
 
-  const selectProduct = (id: number) => {
-    const existing = lines.find((line) => line.idProducto === id);
-    if (!existing && lines.length >= 3) {
+  const toggleProduct = (id: number) => {
+    if (isSelected(id)) {
+      setSelection((current) => current.filter((item) => item.idProducto !== id));
+      return;
+    }
+    if (selection.length >= MAX_PRODUCTS) {
       Alert.alert('Máximo tres productos', 'Una venta puede contener hasta tres productos.');
       return;
     }
-    if (existing) {
-      setProductId(id);
-      setQuantity(String(existing.cantidad));
-      return;
-    }
-    setLines((current) => [...current, { idProducto: id, cantidad: 1 }]);
-    setProductId(id);
-    setQuantity('1');
+    setSelection((current) => [...current, { idProducto: id, texto: '1' }]);
+  };
+
+  const changeQuantity = (id: number, amount: number) => {
+    setSelection((current) =>
+      current.map((item) => {
+        if (item.idProducto !== id) return item;
+        const actual = isPositiveInteger(item.texto) ? Number(item.texto) : 0;
+        return { ...item, texto: String(Math.max(1, actual + amount)) };
+      }),
+    );
+  };
+
+  const typeQuantity = (id: number, texto: string) => {
+    setSelection((current) =>
+      current.map((item) => (item.idProducto === id ? { ...item, texto } : item)),
+    );
   };
 
   const confirmSale = async () => {
-    if (!selected && lines.length === 0) {
+    if (lines.length === 0) {
       Alert.alert('Selecciona un producto', 'Elige el producto que se está vendiendo.');
       return;
     }
@@ -88,9 +94,7 @@ export default function SalesScreen() {
     try {
       await registerSale(lines);
       Alert.alert('Venta registrada', `Se confirmaron ${lines.length} productos.`);
-      setQuantity('1');
-      setProductId(null);
-      setLines([]);
+      setSelection([]);
     } catch (caught) {
       Alert.alert('No se pudo registrar', caught instanceof Error ? caught.message : 'Error inesperado.');
     }
@@ -105,80 +109,77 @@ export default function SalesScreen() {
             <ThemeToggle />
           </ThemedView>
           <ThemedText themeColor="textSecondary">
-            Selecciona un producto y confirma en pocos toques.
+            Toca un producto para agregarlo y tócalo de nuevo para quitarlo.
           </ThemedText>
 
           <ThemedText type="subtitle" style={styles.sectionTitle}>Producto</ThemedText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.products}>
-            {products.map((product) => (
-              <Pressable
-                key={product.id}
-                onPress={() => selectProduct(product.id)}
-                style={[
-                  styles.productCard,
-                  {
-                    backgroundColor:
-                      lines.some((line) => line.idProducto === product.id)
-                        ? theme.primarySoft
-                        : theme.backgroundElement,
-                  },
-                ]}>
-                <SymbolView
-                  name={{ ios: 'cube.box.fill', android: 'inventory_2', web: 'inventory_2' }}
-                  size={22}
-                  tintColor={lines.some((line) => line.idProducto === product.id) ? '#166534' : theme.text}
-                />
-                <ThemedText type="smallBold">{product.nombre}</ThemedText>
-                <ThemedText type="small">{currency.format(product.precio_venta)}</ThemedText>
-                <ThemedText type="small" themeColor="textSecondary">Stock: {product.stock_actual}</ThemedText>
-              </Pressable>
-            ))}
+            {products.map((product) => {
+              const selected = isSelected(product.id);
+              return (
+                <Pressable
+                  key={product.id}
+                  onPress={() => toggleProduct(product.id)}
+                  accessibilityRole="switch"
+                  accessibilityState={{ checked: selected }}
+                  style={[
+                    styles.productCard,
+                    { backgroundColor: selected ? theme.primarySoft : theme.backgroundElement },
+                  ]}>
+                  <SymbolView
+                    name={
+                      selected
+                        ? { ios: 'checkmark.circle.fill', android: 'check_circle', web: 'check_circle' }
+                        : { ios: 'cube.box.fill', android: 'inventory_2', web: 'inventory_2' }
+                    }
+                    size={22}
+                    tintColor={selected ? '#166534' : theme.text}
+                  />
+                  <ThemedText type="smallBold">{product.nombre}</ThemedText>
+                  <ThemedText type="small">{currency.format(product.precio_venta)}</ThemedText>
+                  <ThemedText type="small" themeColor="textSecondary">Stock: {product.stock_actual}</ThemedText>
+                </Pressable>
+              );
+            })}
           </ScrollView>
 
-          {selected && (
-            <ThemedView type="backgroundElement" style={styles.quantityCard}>
-              <ThemedText type="subtitle">{selected.nombre}</ThemedText>
-              <ThemedText themeColor="textSecondary">Disponible: {selected.stock_actual}</ThemedText>
-              <ThemedView style={styles.stepper}>
-                <Pressable
-                  style={[styles.stepButton, { backgroundColor: theme.primary }]}
-                  onPress={() => changeQuantity(-1)}>
-                  <SymbolView
-                    name={{ ios: 'minus', android: 'remove', web: 'remove' }}
-                    size={28}
-                    tintColor="#FFFFFF"
+          {selection.map((item) => {
+            const product = products.find((p) => p.id === item.idProducto);
+            if (!product) return null;
+            return (
+              <ThemedView key={item.idProducto} type="backgroundElement" style={styles.quantityCard}>
+                <ThemedText type="subtitle">{product.nombre}</ThemedText>
+                <ThemedText themeColor="textSecondary">Disponible: {product.stock_actual}</ThemedText>
+                <ThemedView style={styles.stepper}>
+                  <Pressable
+                    style={[styles.stepButton, { backgroundColor: theme.primary }]}
+                    onPress={() => changeQuantity(item.idProducto, -1)}>
+                    <SymbolView
+                      name={{ ios: 'minus', android: 'remove', web: 'remove' }}
+                      size={28}
+                      tintColor="#FFFFFF"
+                    />
+                  </Pressable>
+                  <TextInput
+                    value={item.texto}
+                    onChangeText={(value) => typeQuantity(item.idProducto, value)}
+                    keyboardType="number-pad"
+                    inputMode="numeric"
+                    style={[styles.quantityInput, { color: theme.text }]}
                   />
-                </Pressable>
-                <TextInput
-                  value={quantity}
-                  onChangeText={(value) => {
-                    setQuantity(value);
-                    if (productId !== null) {
-                      setLines((current) =>
-                        current.map((line) =>
-                          line.idProducto === productId
-                            ? { ...line, cantidad: /^\d+$/.test(value) ? Number(value) : 0 }
-                            : line,
-                        ),
-                      );
-                    }
-                  }}
-                  keyboardType="number-pad"
-                  inputMode="numeric"
-                  style={[styles.quantityInput, { color: theme.text }]}
-                />
-                <Pressable
-                  style={[styles.stepButton, { backgroundColor: theme.primary }]}
-                  onPress={() => changeQuantity(1)}>
-                  <SymbolView
-                    name={{ ios: 'plus', android: 'add', web: 'add' }}
-                    size={28}
-                    tintColor="#FFFFFF"
-                  />
-                </Pressable>
+                  <Pressable
+                    style={[styles.stepButton, { backgroundColor: theme.primary }]}
+                    onPress={() => changeQuantity(item.idProducto, 1)}>
+                    <SymbolView
+                      name={{ ios: 'plus', android: 'add', web: 'add' }}
+                      size={28}
+                      tintColor="#FFFFFF"
+                    />
+                  </Pressable>
+                </ThemedView>
               </ThemedView>
-            </ThemedView>
-          )}
+            );
+          })}
 
           <ThemedView style={[styles.totalCard, { borderColor: theme.primary }]}>
             <ThemedView style={styles.totalLabel}>

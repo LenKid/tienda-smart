@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.tiendasmart.app"
     },
     "web": {
       "output": "single",
@@ -27,7 +28,7 @@
       [
         "expo-splash-screen",
         {
-            "backgroundColor": "#111827",
+          "backgroundColor": "#111827",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
@@ -37,6 +38,16 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "b5172cdb-fbab-4d14-8157-77e3177cadc5"
+      }
     }
   }
 }
