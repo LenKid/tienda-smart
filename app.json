@@ -33,7 +33,12 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-build-properties",
+      [
+        "expo-build-properties",
+        { "android": { "buildArchs": ["armeabi-v7a"] } }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
